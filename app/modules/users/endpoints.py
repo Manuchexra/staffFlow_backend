@@ -7,7 +7,7 @@ from app.modules.users.service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED, summary="[Admin] Yangi xodim yaratish")
 async def create_user(
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db),
@@ -18,12 +18,12 @@ async def create_user(
     """
     return await UserService.create_user(db, user_data)
 
-@router.get("/", response_model=list[UserResponse])
+@router.get("/", response_model=list[UserResponse], summary="[Admin/HR] Barcha xodimlarni ko'rish")
 async def list_users(
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(require_role(UserRole.ADMIN))
+    current_user = Depends(require_role(UserRole.HR_MANAGER))
 ):
     """
-    Faqat Admin barcha xodimlarni ko'ra oladi.
+    Barcha xodimlarni ko'rish (Admin va HR Manager uchun).
     """
     return await UserService.get_all_users(db)

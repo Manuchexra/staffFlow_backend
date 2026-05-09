@@ -40,3 +40,9 @@ async def is_blocked(identifier: str) -> bool:
     key = f"login_fail:{identifier}"
     attempts = await redis_client.get(key)
     return int(attempts or 0) >= 5
+
+async def blacklist_token(token: str, expires_in: int):
+    await redis_client.setex(f"blacklist:{token}", expires_in, "true")
+
+async def is_token_blacklisted(token: str) -> bool:
+    return await redis_client.exists(f"blacklist:{token}") > 0

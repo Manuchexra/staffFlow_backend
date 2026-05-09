@@ -8,17 +8,17 @@ from app.modules.attendance.service import AttendanceService
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
 
-@router.post("/check-in", response_model=AttendanceResponse)
+@router.post("/check-in", response_model=AttendanceResponse, summary="[Employee] Ishga kelishni qayd etish")
 async def check_in(request: CheckInRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_role(UserRole.EMPLOYEE))):
     attendance = await AttendanceService.check_in(db, current_user.id, request.latitude, request.longitude)
     return attendance
 
-@router.post("/check-out", response_model=AttendanceResponse)
+@router.post("/check-out", response_model=AttendanceResponse, summary="[Employee] Ishdan ketishni qayd etish")
 async def check_out(request: CheckOutRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_role(UserRole.EMPLOYEE))):
     attendance = await AttendanceService.check_out(db, current_user.id, request.latitude, request.longitude)
     return attendance
 
-@router.get("/my-attendance")
+@router.get("/my-attendance", summary="[Employee] O'z davomatini ko'rish")
 async def get_my_attendance(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     from sqlalchemy import select
     from app.modules.attendance.models import Attendance

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.modules.users.models import User
-from app.core.security import verify_password, create_access_token, create_refresh_token, increment_failed_login, is_blocked
+from app.core.security import verify_password, create_access_token, create_refresh_token, increment_failed_login, is_blocked, blacklist_token
 from fastapi import HTTPException, status
 from app.core.redis_client import redis_client
 
@@ -20,3 +20,9 @@ class AuthService:
         access = create_access_token(str(user.id))
         refresh = create_refresh_token(str(user.id))
         return access, refresh
+
+    @staticmethod
+    async def logout(token: str):
+        # Access tokenni 60 daqiqaga blacklistga qo'shish
+        await blacklist_token(token, 3600)
+        return {"detail": "Successfully logged out"}
