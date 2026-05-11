@@ -43,3 +43,23 @@ class SalarySummaryResponse(BaseModel):
 
 class SalaryListResponse(BaseModel):
     salaries: List[SalarySummaryResponse]
+
+# ========== YANGI SCHEMALAR (SPRINT 2) ==========
+
+class SalaryHistoryItem(BaseModel):
+    id: int
+    month: int
+    year: int
+    net_salary: float
+    status: str
+    calculated_at: datetime
+
+class SalaryHistoryResponse(BaseModel):
+    salaries: List[SalaryHistoryItem]
+
+class YearlySummaryResponse(BaseModel):
+    year: int
+    total_income: float   # yillik net maosh yig'indisi
+    total_bonus: float
+    total_penalty: float
+    total_advance: float

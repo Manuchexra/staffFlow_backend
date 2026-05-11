@@ -1,5 +1,8 @@
+from typing import Optional, List
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func
+from sqlalchemy.sql import extract
 from datetime import datetime
 from fastapi import HTTPException, status
 from app.modules.salary.models import Salary, Transaction, TransactionType
@@ -144,3 +147,53 @@ class SalaryService:
         stmt = stmt.order_by(Transaction.date.desc())
         result = await db.execute(stmt)
         return result.scalars().all()
+    
+    @staticmethod
+    async def get_salary_history(db: AsyncSession, user_id: int, limit: int = 12, offset: int = 0) -> List[Salary]:
+        stmt = select(Salary).where(Salary.user_id == user_id).order_by(Salary.year.desc(), Salary.month.desc()).offset(offset).limit(limit)
+        result = await db.execute(stmt)
+        return result.scalars().all()
+
+    @staticmethod
+    async def get_latest_salary(db: AsyncSession, user_id: int) -> Optional[Salary]:
+        stmt = select(Salary).where(Salary.user_id == user_id).order_by(Salary.year.desc(), Salary.month.desc()).limit(1)
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_yearly_summary(db: AsyncSession, user_id: int, year: int) -> dict:
+        # Salary yig'indisi
+        salary_stmt = select(func.sum(Salary.net_salary)).where(
+            Salary.user_id == user_id, Salary.year == year
+        )
+        total_income = (await db.execute(salary_stmt)).scalar() or 0.0
+
+        # Tranzaksiyalar yig'indisi (bonus, penalty, advance)
+        bonus_stmt = select(func.sum(Transaction.amount)).where(
+            Transaction.user_id == user_id,
+            extract('year', Transaction.date) == year,
+            Transaction.type == TransactionType.BONUS
+        )
+        total_bonus = (await db.execute(bonus_stmt)).scalar() or 0.0
+
+        penalty_stmt = select(func.sum(Transaction.amount)).where(
+            Transaction.user_id == user_id,
+            extract('year', Transaction.date) == year,
+            Transaction.type == TransactionType.PENALTY
+        )
+        total_penalty = (await db.execute(penalty_stmt)).scalar() or 0.0
+
+        advance_stmt = select(func.sum(Transaction.amount)).where(
+            Transaction.user_id == user_id,
+            extract('year', Transaction.date) == year,
+            Transaction.type == TransactionType.ADVANCE
+        )
+        total_advance = (await db.execute(advance_stmt)).scalar() or 0.0
+
+        return {
+            "year": year,
+            "total_income": total_income,
+            "total_bonus": total_bonus,
+            "total_penalty": total_penalty,
+            "total_advance": total_advance,
+        }

@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from app.api.v1.router import api_v1_router
 from app.database import engine, Base, AsyncSessionLocal
 from app.core.redis_client import redis_client
-from app.seed import seed_initial_data   # import
+from app.seed import seed_initial_data
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
@@ -12,7 +14,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as db:
-        await seed_initial_data(db)   # <-- barcha seedlarni ishga tushiradi
+        await seed_initial_data(db)
 
     yield
 
@@ -30,3 +32,8 @@ app.add_middleware(
 )
 
 app.include_router(api_v1_router)
+
+# Static files va upload papkasini sozlash
+UPLOAD_DIR = "static/uploads/avatars"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")

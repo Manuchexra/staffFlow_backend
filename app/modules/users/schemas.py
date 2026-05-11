@@ -7,15 +7,37 @@ class UserBase(BaseModel):
     phone: str
     email: Optional[EmailStr] = None
     full_name: str
+    position: Optional[str] = None          # yangi
+    avatar_url: Optional[str] = None 
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    email: Optional[EmailStr] = None
+    phone: str
+    full_name: str
     password: str
-    role: UserRole = UserRole.EMPLOYEE
+    role: str = "employee"
     is_active: bool = True
-    work_start_time: time = time(9, 0)
-    work_end_time: time = time(18, 0)
+    work_start_time: time = time(9,0)
+    work_end_time: time = time(18,0)
     base_salary: float = 0.0
     expected_monthly_hours: float = 160.0
+    avatar_url: Optional[str] = None      # yangi
+    position: Optional[str] = None        # yangi
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    position: Optional[str] = None
+    avatar_url: Optional[str] = None
+    work_start_time: Optional[time] = None
+    work_end_time: Optional[time] = None
+    base_salary: Optional[float] = None
+    expected_monthly_hours: Optional[float] = None
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
 
 class UserResponse(UserBase):
     id: int

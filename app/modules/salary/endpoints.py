@@ -6,7 +6,8 @@ from app.core.deps import get_current_user, require_role, UserRole
 from app.modules.users.models import User
 from app.modules.salary.schemas import (
     TransactionCreate, TransactionResponse,
-    SalaryCalculateRequest, SalarySummaryResponse, SalaryListResponse
+    SalaryCalculateRequest, SalarySummaryResponse, SalaryListResponse,
+    SalaryHistoryResponse, YearlySummaryResponse          # yangi importlar
 )
 from app.modules.salary.service import SalaryService
 from app.modules.salary.models import TransactionType, Salary, Transaction
@@ -85,7 +86,6 @@ async def get_transactions(
     current_user: User = Depends(require_role(UserRole.HR_MANAGER))
 ):
     if user_id is None:
-        from app.modules.salary.models import Transaction
         from sqlalchemy import select
         stmt = select(Transaction).order_by(Transaction.date.desc())
         result = await db.execute(stmt)
@@ -124,3 +124,51 @@ async def get_all_salaries(
             net_salary=sal.net_salary, status=sal.status.value, calculated_at=sal.calculated_at
         ))
     return SalaryListResponse(salaries=items)
+
+# ========== YANGI ENDPOINTLAR (SPRINT 2) ==========
+
+@router.get("/my/history", response_model=SalaryHistoryResponse, summary="[Employee] O'z maosh tarixini ko'rish")
+async def get_my_salary_history(
+    limit: int = Query(12, ge=1, le=24),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    salaries = await SalaryService.get_salary_history(db, current_user.id, limit, offset)
+    items = [
+        {
+            "id": s.id,
+            "month": s.month,
+            "year": s.year,
+            "net_salary": s.net_salary,
+            "status": s.status.value,
+            "calculated_at": s.calculated_at
+        } for s in salaries
+    ]
+    return SalaryHistoryResponse(salaries=items)
+
+@router.get("/my/latest", response_model=Optional[SalaryHistoryResponse], summary="[Employee] Eng so'nggi maoshni ko'rish")
+async def get_my_latest_salary(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    salary = await SalaryService.get_latest_salary(db, current_user.id)
+    if not salary:
+        return None
+    return SalaryHistoryResponse(salaries=[{
+        "id": salary.id,
+        "month": salary.month,
+        "year": salary.year,
+        "net_salary": salary.net_salary,
+        "status": salary.status.value,
+        "calculated_at": salary.calculated_at
+    }])
+
+@router.get("/my/yearly-summary", response_model=YearlySummaryResponse, summary="[Employee] Yillik jamlama")
+async def get_my_yearly_summary(
+    year: int = Query(..., ge=2020, le=2030),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    summary = await SalaryService.get_yearly_summary(db, current_user.id, year)
+    return YearlySummaryResponse(**summary)

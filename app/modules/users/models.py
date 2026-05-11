@@ -20,7 +20,11 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     work_start_time: Mapped[time] = mapped_column(Time, default=time(9,0,0))
     work_end_time: Mapped[time] = mapped_column(Time, default=time(18,0,0))
-    # Yangi: ish haqi sozlamalari
+    
     base_salary: Mapped[float] = mapped_column(Float, default=0.0)          # oylik bazaviy maosh (so'mda)
     expected_monthly_hours: Mapped[float] = mapped_column(Float, default=160.0)  # oylik kutilgan ish soati
+
+    avatar_url: Mapped[str] = mapped_column(String, nullable=True)   # rasm URL yoki base64
+    position: Mapped[str] = mapped_column(String(100), nullable=True)  
+    
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
