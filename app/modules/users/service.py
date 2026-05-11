@@ -19,7 +19,8 @@ class UserService:
         new_user = User(
             email=user_data.email,
             phone=user_data.phone,
-            full_name=user_data.full_name,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
             hashed_password=hash_password(user_data.password),
             role=user_data.role,
             is_active=user_data.is_active,

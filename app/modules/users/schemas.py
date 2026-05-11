@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, computed_field
 from typing import Optional
 from datetime import datetime, time
 from app.modules.users.models import UserRole
@@ -6,14 +6,17 @@ from app.modules.users.models import UserRole
 class UserBase(BaseModel):
     phone: str
     email: Optional[EmailStr] = None
-    full_name: str
+    first_name: str
+    last_name: str
     position: Optional[str] = None          # yangi
-    avatar_url: Optional[str] = None 
+    avatar_url: Optional[str] = None
+    device_id: Optional[str] = None         # mobil qurilma ID 
 
 class UserCreate(BaseModel):
     email: Optional[EmailStr] = None
     phone: str
-    full_name: str
+    first_name: str
+    last_name: str
     password: str
     role: str = "employee"
     is_active: bool = True
@@ -23,13 +26,16 @@ class UserCreate(BaseModel):
     expected_monthly_hours: float = 160.0
     avatar_url: Optional[str] = None      # yangi
     position: Optional[str] = None        # yangi
+    device_id: Optional[str] = None       # mobil qurilma ID
 
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     position: Optional[str] = None
     avatar_url: Optional[str] = None
+    device_id: Optional[str] = None
     work_start_time: Optional[time] = None
     work_end_time: Optional[time] = None
     base_salary: Optional[float] = None
@@ -47,7 +53,13 @@ class UserResponse(UserBase):
     work_end_time: time
     base_salary: float
     expected_monthly_hours: float
+    device_id: Optional[str] = None
     created_at: datetime
+
+    @computed_field
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
 
     class Config:
         from_attributes = True

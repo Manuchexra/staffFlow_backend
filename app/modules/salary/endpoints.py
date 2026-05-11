@@ -25,7 +25,7 @@ async def get_my_salary(
     salary = await SalaryService.get_user_salary_summary(db, current_user.id, month, year)
     return SalarySummaryResponse(
         user_id=current_user.id,
-        full_name=current_user.full_name,
+        full_name=f"{current_user.first_name} {current_user.last_name}",
         month=salary.month,
         year=salary.year,
         base_salary=salary.base_salary,
@@ -52,7 +52,7 @@ async def calculate_salary_for_user(
     user = (await db.execute(user_stmt)).scalar_one()
     return SalarySummaryResponse(
         user_id=user.id,
-        full_name=user.full_name,
+        full_name=f"{user.first_name} {user.last_name}",
         month=salary.month,
         year=salary.year,
         base_salary=salary.base_salary,
@@ -117,7 +117,7 @@ async def get_all_salaries(
         user_stmt = select(User).where(User.id == sal.user_id)
         user = (await db.execute(user_stmt)).scalar_one()
         items.append(SalarySummaryResponse(
-            user_id=user.id, full_name=user.full_name, month=sal.month, year=sal.year,
+            user_id=user.id, full_name=f"{user.first_name} {user.last_name}", month=sal.month, year=sal.year,
             base_salary=sal.base_salary, total_worked_hours=sal.total_worked_hours,
             expected_hours=sal.expected_hours, bonus_total=sal.bonus_total,
             penalty_total=sal.penalty_total, advance_total=sal.advance_total,

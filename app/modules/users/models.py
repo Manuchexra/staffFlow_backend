@@ -14,7 +14,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=True)
     phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
-    full_name: Mapped[str] = mapped_column(String(150))
+    first_name: Mapped[str] = mapped_column(String(75))
+    last_name: Mapped[str] = mapped_column(String(75))
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.EMPLOYEE)
     is_active: Mapped[bool] = mapped_column(default=True)
@@ -26,5 +27,6 @@ class User(Base):
 
     avatar_url: Mapped[str] = mapped_column(String, nullable=True)   # rasm URL yoki base64
     position: Mapped[str] = mapped_column(String(100), nullable=True)  
+    device_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)  # mobil qurilma ID
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

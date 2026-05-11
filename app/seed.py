@@ -20,29 +20,131 @@ INITIAL_USERS = [
     {
         "phone": "+998901234567",
         "email": "admin@staffflow.uz",
-        "full_name": "Admin User",
+        "first_name": "Shohruh",
+        "last_name": "Malikov",
         "password": "admin123",
         "role": UserRole.ADMIN,
-        "base_salary": 0,
-        "expected_monthly_hours": 160
+        "position": "Sistema Administrator",
+        "base_salary": 8000000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(8, 30),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/admin.jpg",
+        "device_id": "admin_device_001"
     },
     {
         "phone": "+998902345678",
         "email": "hr@staffflow.uz",
-        "full_name": "HR Manager",
+        "first_name": "Anora",
+        "last_name": "Mominova",
         "password": "hr123",
         "role": UserRole.HR_MANAGER,
-        "base_salary": 5000000,
-        "expected_monthly_hours": 160
+        "position": "HR Menedzher",
+        "base_salary": 5500000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(9, 0),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/hr.jpg",
+        "device_id": "hr_device_001"
     },
     {
         "phone": "+998903456789",
-        "email": "employee@staffflow.uz",
-        "full_name": "Regular Employee",
+        "email": "mnurmexrojova@gmail.com",
+        "first_name": "Manuchehra",
+        "last_name": "Nurmexrojova",
         "password": "emp123",
         "role": UserRole.EMPLOYEE,
-        "base_salary": 3000000,
-        "expected_monthly_hours": 160
+        "position": "Backend Developer",
+        "base_salary": 4000000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(9, 0),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/employee1.jpg",
+        "device_id": "emp_device_001"
+    },
+    {
+        "phone": "+998904567890",
+        "email": "employee2@staffflow.uz",
+        "first_name": "Sardor",
+        "last_name": "Mirzaev",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "Frontend Developer",
+        "base_salary": 3800000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(9, 0),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/employee2.jpg",
+        "device_id": "emp_device_002"
+    },
+    {
+        "phone": "+998905678901",
+        "email": "shakhrashidov@gmail.com",
+        "first_name": "Akbarshoh",
+        "last_name": "Shakhrashidov",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "QA Engineer",
+        "base_salary": 3200000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(9, 0),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/employee3.jpg",
+        "device_id": "emp_device_003"
+    },
+    {
+        "phone": "+998906789012",
+        "email": "azamatovagavharoy@gmail.com",
+        "first_name": "Gavharoy",
+        "last_name": "Azamatova",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "UI/UX Designer",
+        "base_salary": 3500000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(10, 0),
+        "work_end_time": time(19, 0),
+        "avatar_url": "/static/uploads/avatars/employee4.jpg",
+        "device_id": "emp_device_004"
+    },
+    {
+        "phone": "+998907890123",
+        "email": "online1@staffflow.uz",
+        "first_name": "Alisher",
+        "last_name": "Ergashev",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "Remote Marketing Manager",
+        "base_salary": 3600000,
+        "expected_monthly_hours": 160,
+        "avatar_url": "/static/uploads/avatars/online1.jpg",
+        "device_id": "online_device_001"
+    },
+    {
+        "phone": "+998908901234",
+        "email": "online2@staffflow.uz",
+        "first_name": "Mariya",
+        "last_name": "Sabieva",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "Remote Content Manager",
+        "base_salary": 2800000,
+        "expected_monthly_hours": 160,
+        "avatar_url": "/static/uploads/avatars/online2.jpg",
+        "device_id": "online_device_002"
+    },
+    {
+        "phone": "+998909012345",
+        "email": "online3@staffflow.uz",
+        "first_name": "Timur",
+        "last_name": "Xusainov",
+        "password": "emp123",
+        "role": UserRole.EMPLOYEE,
+        "position": "Remote DevOps Engineer",
+        "base_salary": 4500000,
+        "expected_monthly_hours": 160,
+        "avatar_url": "/static/uploads/avatars/online3.jpg",
+        "device_id": "online_device_003"
     }
 ]
 
@@ -54,15 +156,21 @@ async def seed_users(db: AsyncSession):
             user = User(
                 phone=data["phone"],
                 email=data["email"],
-                full_name=data["full_name"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
                 hashed_password=hash_password(data["password"]),
                 role=data["role"],
                 is_active=True,
                 base_salary=data["base_salary"],
-                expected_monthly_hours=data["expected_monthly_hours"]
+                expected_monthly_hours=data["expected_monthly_hours"],
+                position=data.get("position"),
+                work_start_time=data.get("work_start_time", time(9, 0)),
+                work_end_time=data.get("work_end_time", time(18, 0)),
+                avatar_url=data.get("avatar_url"),
+                device_id=data.get("device_id")
             )
             db.add(user)
-            print(f"✅ Created user: {data['full_name']} ({data['role'].value})")
+            print(f"✅ Created user: {data['first_name']} {data['last_name']} - {data['position']} ({data['role'].value})")
     await db.commit()
 
 # ==================== ATTENDANCE ====================
@@ -217,21 +325,25 @@ async def seed_initial_data(db: AsyncSession):
     # 1. Foydalanuvchilar
     await seed_users(db)
 
-    # 2. Employee ID sini olish
-    emp_stmt = select(User).where(User.phone == "+998903456789")
-    employee = (await db.execute(emp_stmt)).scalar_one_or_none()
-    if not employee:
-        print("⚠️ Employee not found, skipping attendance/transactions/salary seed")
+    # 2. Barcha employee'lar uchun attendance, transactions, salary yaratish
+    emp_stmt = select(User).where(User.role == UserRole.EMPLOYEE)
+    employees = (await db.execute(emp_stmt)).scalars().all()
+    
+    if not employees:
+        print("⚠️ No employees found, skipping attendance/transactions/salary seed")
         return
 
     now = datetime.now()
     year, month = now.year, now.month
 
-    # 3. Attendance (joriy oy uchun, faqat o'tgan kunlar)
-    await seed_attendance(db, employee.id, year, month)
+    for employee in employees:
+        print(f"\n📊 Seed data for: {employee.first_name} {employee.last_name} ({employee.position})")
+        
+        # 3. Attendance (joriy oy uchun, faqat o'tgan kunlar)
+        await seed_attendance(db, employee.id, year, month)
 
-    # 4. Transactions
-    await seed_transactions(db, employee.id, year, month)
+        # 4. Transactions
+        await seed_transactions(db, employee.id, year, month)
 
-    # 5. Salary hisoblash
-    await seed_salary(db, employee.id, year, month)
+        # 5. Salary hisoblash
+        await seed_salary(db, employee.id, year, month)

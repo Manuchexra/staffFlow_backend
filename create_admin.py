@@ -27,7 +27,8 @@ async def create_admin():
             user = User(
                 email=email,
                 phone="+998901234567",
-                full_name="Admin",
+                first_name="Admin",
+                last_name="User",
                 hashed_password=hash_password("admin123"),
                 role=UserRole.ADMIN,
                 is_active=True

@@ -10,6 +10,14 @@ class Settings(BaseSettings):
     GEOFENCE_LAT: float = 41.311081
     GEOFENCE_LON: float = 69.240562
     GEOFENCE_RADIUS_METERS: float = 500
+    
+    # Email SMTP sozlamalari
+    SMTP_MOCK: bool = True  # Test rejimida mock email (print)
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_EMAIL: str = "your-email@gmail.com"
+    SMTP_PASSWORD: str = "your-app-password"
+    SMTP_FROM_NAME: str = "StaffFlow"
 
     # Pydantic v2 usuli: qo'shimcha maydonlarni e'tiborsiz qoldirish
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
