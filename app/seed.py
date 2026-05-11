@@ -9,7 +9,7 @@ Dastlabki ma'lumotlarni yaratish:
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta, time
-from app.modules.users.models import User
+from app.modules.users.models import User, WorkType
 from app.modules.attendance.models import Attendance, AttendanceStatus
 from app.modules.salary.models import Transaction, TransactionType, Salary, SalaryStatus
 from app.core.security import hash_password
@@ -57,8 +57,7 @@ INITIAL_USERS = [
         "position": "Backend Developer",
         "base_salary": 4000000,
         "expected_monthly_hours": 160,
-        "work_start_time": time(9, 0),
-        "work_end_time": time(18, 0),
+        "work_type": WorkType.ONLINE,
         "avatar_url": "/static/uploads/avatars/employee1.jpg",
         "device_id": "emp_device_001"
     },
@@ -72,8 +71,7 @@ INITIAL_USERS = [
         "position": "Frontend Developer",
         "base_salary": 3800000,
         "expected_monthly_hours": 160,
-        "work_start_time": time(9, 0),
-        "work_end_time": time(18, 0),
+        "work_type": WorkType.ONLINE,
         "avatar_url": "/static/uploads/avatars/employee2.jpg",
         "device_id": "emp_device_002"
     },
@@ -87,6 +85,7 @@ INITIAL_USERS = [
         "position": "QA Engineer",
         "base_salary": 3200000,
         "expected_monthly_hours": 160,
+        "work_type": WorkType.OFFLINE,
         "work_start_time": time(9, 0),
         "work_end_time": time(18, 0),
         "avatar_url": "/static/uploads/avatars/employee3.jpg",
@@ -102,8 +101,7 @@ INITIAL_USERS = [
         "position": "UI/UX Designer",
         "base_salary": 3500000,
         "expected_monthly_hours": 160,
-        "work_start_time": time(10, 0),
-        "work_end_time": time(19, 0),
+        "work_type": WorkType.ONLINE,
         "avatar_url": "/static/uploads/avatars/employee4.jpg",
         "device_id": "emp_device_004"
     },
@@ -166,11 +164,12 @@ async def seed_users(db: AsyncSession):
                 position=data.get("position"),
                 work_start_time=data.get("work_start_time", time(9, 0)),
                 work_end_time=data.get("work_end_time", time(18, 0)),
+                work_type=data.get("work_type", WorkType.ONLINE),
                 avatar_url=data.get("avatar_url"),
                 device_id=data.get("device_id")
             )
             db.add(user)
-            print(f"✅ Created user: {data['first_name']} {data['last_name']} - {data['position']} ({data['role'].value})")
+            print(f"✅ Created user: {data['first_name']} {data['last_name']} - {data.get('position')} ({data['role'].value})")
     await db.commit()
 
 # ==================== ATTENDANCE ====================
@@ -337,10 +336,13 @@ async def seed_initial_data(db: AsyncSession):
     year, month = now.year, now.month
 
     for employee in employees:
-        print(f"\n📊 Seed data for: {employee.first_name} {employee.last_name} ({employee.position})")
-        
-        # 3. Attendance (joriy oy uchun, faqat o'tgan kunlar)
-        await seed_attendance(db, employee.id, year, month)
+        print(f"\n📊 Seed data for: {employee.first_name} {employee.last_name} ({employee.position}) | work_type={employee.work_type}")
+
+        # 3. Attendance (faqat online xodimlarga)
+        if getattr(employee, 'work_type', None) == WorkType.ONLINE:
+            await seed_attendance(db, employee.id, year, month)
+        else:
+            print(f"ℹ️ Skipping attendance for offline user {employee.first_name} {employee.last_name}")
 
         # 4. Transactions
         await seed_transactions(db, employee.id, year, month)
