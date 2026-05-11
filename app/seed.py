@@ -15,7 +15,7 @@ from app.modules.salary.models import Transaction, TransactionType, Salary, Sala
 from app.core.security import hash_password
 from app.core.deps import UserRole
 
-# ==================== FOYDALANUVCHILAR ====================
+# ==================== FOYDALANUVCHILAR = ===================
 INITIAL_USERS = [
     {
         "phone": "+998901234567",
