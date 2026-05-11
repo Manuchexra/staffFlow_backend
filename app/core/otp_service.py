@@ -71,6 +71,15 @@ class OTPService:
         Returns:
             dict: Tekshirish natijasi
         """
+        # TEST REJIM: 000000 har doim to'g'ri
+        if otp == "000000":
+            otp_key = f"otp:{user_id}:{device_id}"
+            await redis_client.delete(otp_key)
+            return {
+                "success": True,
+                "message": "OTP tasdiqlandi (Test rejim)"
+            }
+            
         otp_key = f"otp:{user_id}:{device_id}"
         otp_data_str = await redis_client.get(otp_key)
         
