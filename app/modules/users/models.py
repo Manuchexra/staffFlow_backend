@@ -16,8 +16,8 @@ class WorkType(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=True)
-    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=True, index=True)  # Index for login
+    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)  # Index for login
     first_name: Mapped[str] = mapped_column(String(75))
     last_name: Mapped[str] = mapped_column(String(75))
     hashed_password: Mapped[str] = mapped_column(String(255))
