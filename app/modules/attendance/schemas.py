@@ -5,10 +5,14 @@ from typing import Optional
 class CheckInRequest(BaseModel):
     latitude: float
     longitude: float
+    ssid: str
+    bssid: str
 
 class CheckOutRequest(BaseModel):
     latitude: float
     longitude: float
+    ssid: str
+    bssid: str
 
 class AttendanceResponse(BaseModel):
     id: int

@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
-from app.modules.users.models import User
-from app.modules.users.schemas import UserCreate, UserUpdate
+from sqlalchemy import select, update, or_
+from typing import Union
+from app.modules.users.models import User, UserRole
+from app.modules.users.schemas import UserCreate, UserUpdateMe, UserUpdateHR
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException, status, UploadFile
 import os
@@ -37,8 +38,32 @@ class UserService:
         return new_user
 
     @staticmethod
-    async def get_all_users(db: AsyncSession):
-        stmt = select(User).order_by(User.id)
+    async def get_all_users(
+        db: AsyncSession, 
+        search: str = None, 
+        role: UserRole = None, 
+        is_active: bool = None
+    ):
+        stmt = select(User)
+        
+        if search:
+            search_filter = f"%{search}%"
+            stmt = stmt.where(
+                or_(
+                    User.first_name.ilike(search_filter),
+                    User.last_name.ilike(search_filter),
+                    User.phone.ilike(search_filter),
+                    User.email.ilike(search_filter)
+                )
+            )
+        
+        if role:
+            stmt = stmt.where(User.role == role)
+        
+        if is_active is not None:
+            stmt = stmt.where(User.is_active == is_active)
+            
+        stmt = stmt.order_by(User.id)
         result = await db.execute(stmt)
         return result.scalars().all()
 
@@ -52,7 +77,7 @@ class UserService:
         return user
 
     @staticmethod
-    async def update_user(db: AsyncSession, user_id: int, update_data: UserUpdate) -> User:
+    async def update_user(db: AsyncSession, user_id: int, update_data: Union[UserUpdateMe, UserUpdateHR]) -> User:
         user = await UserService.get_user_by_id(db, user_id)
         for field, value in update_data.model_dump(exclude_unset=True).items():
             if value is not None:
@@ -67,6 +92,30 @@ class UserService:
         if not verify_password(old_password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Old password is incorrect")
         user.hashed_password = hash_password(new_password)
+        await db.commit()
+        return True
+
+    @staticmethod
+    async def admin_set_password(db: AsyncSession, user_id: int, new_password: str) -> bool:
+        user = await UserService.get_user_by_id(db, user_id)
+        user.hashed_password = hash_password(new_password)
+        await db.commit()
+        return True
+
+    @staticmethod
+    async def delete_user(db: AsyncSession, user_id: int) -> bool:
+        user = await UserService.get_user_by_id(db, user_id)
+        
+        # Avatarni o'chirish
+        if user.avatar_url and user.avatar_url.startswith("/static/"):
+            old_path = user.avatar_url.lstrip("/")
+            if os.path.exists(old_path):
+                try:
+                    os.remove(old_path)
+                except:
+                    pass
+                    
+        await db.delete(user)
         await db.commit()
         return True
 

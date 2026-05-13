@@ -4,20 +4,23 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
     SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
-    GEOFENCE_LAT: float = 41.311081
-    GEOFENCE_LON: float = 69.240562
-    GEOFENCE_RADIUS_METERS: float = 500
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int 
+    REFRESH_TOKEN_EXPIRE_DAYS: int 
+
+    GEOFENCE_LAT: float 
+    GEOFENCE_LON: float 
+    GEOFENCE_RADIUS_METERS: float 
+    OFFICE_SSID: str = "Nextin"
+    OFFICE_BSSID: str = "AA:BB:CC:11:22:33"
     
     # Email SMTP sozlamalari
-    SMTP_MOCK: bool = True  # Test rejimida mock email (print)
-    SMTP_SERVER: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_EMAIL: str = "your-email@gmail.com"
-    SMTP_PASSWORD: str = "your-app-password"
-    SMTP_FROM_NAME: str = "StaffFlow"
+    SMTP_MOCK: bool 
+    SMTP_SERVER: str 
+    SMTP_PORT: int 
+    SMTP_EMAIL: str 
+    SMTP_PASSWORD: str 
+    SMTP_FROM_NAME: str
 
     # Pydantic v2 usuli: qo'shimcha maydonlarni e'tiborsiz qoldirish
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

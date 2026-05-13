@@ -20,3 +20,6 @@ class OTPResponse(BaseModel):
     temp_auth_token: str
     message: str
     expires_in_minutes: int
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

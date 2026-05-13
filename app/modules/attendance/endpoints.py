@@ -10,12 +10,12 @@ router = APIRouter(prefix="/attendance", tags=["Attendance"])
 
 @router.post("/check-in", response_model=AttendanceResponse, summary="[Employee] Ishga kelishni qayd etish")
 async def check_in(request: CheckInRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_role(UserRole.EMPLOYEE))):
-    attendance = await AttendanceService.check_in(db, current_user.id, request.latitude, request.longitude)
+    attendance = await AttendanceService.check_in(db, current_user.id, request.latitude, request.longitude, request.ssid, request.bssid)
     return attendance
 
 @router.post("/check-out", response_model=AttendanceResponse, summary="[Employee] Ishdan ketishni qayd etish")
 async def check_out(request: CheckOutRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_role(UserRole.EMPLOYEE))):
-    attendance = await AttendanceService.check_out(db, current_user.id, request.latitude, request.longitude)
+    attendance = await AttendanceService.check_out(db, current_user.id, request.latitude, request.longitude, request.ssid, request.bssid)
     return attendance
 
 @router.get("/my-attendance", summary="[Employee] O'z davomatini ko'rish")

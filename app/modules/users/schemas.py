@@ -28,14 +28,21 @@ class UserCreate(BaseModel):
     position: Optional[str] = None        # yangi
     device_id: Optional[str] = None       # mobil qurilma ID
 
-class UserUpdate(BaseModel):
+class UserUpdateMe(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    avatar_url: Optional[str] = None
+
+class UserUpdateHR(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     position: Optional[str] = None
-    avatar_url: Optional[str] = None
-    device_id: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
     work_start_time: Optional[time] = None
     work_end_time: Optional[time] = None
     base_salary: Optional[float] = None
@@ -43,6 +50,9 @@ class UserUpdate(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     old_password: str
+    new_password: str
+
+class AdminResetPasswordRequest(BaseModel):
     new_password: str
 
 class UserResponse(UserBase):

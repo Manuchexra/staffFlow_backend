@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.modules.users.models import User
-from app.core.security import verify_password, create_access_token, create_refresh_token, increment_failed_login, is_blocked, blacklist_token
+from app.core.security import verify_password, create_access_token, create_refresh_token, increment_failed_login, is_blocked, blacklist_token, decode_token
 from app.core.otp_service import OTPService
 from fastapi import HTTPException, status
 from app.core.redis_client import redis_client
@@ -109,3 +109,26 @@ class AuthService:
         # Access tokenni 60 daqiqaga blacklistga qo'shish
         await blacklist_token(token, 3600)
         return {"detail": "Successfully logged out"}
+
+    @staticmethod
+    async def refresh_tokens(db: AsyncSession, refresh_token: str):
+        """Refresh token orqali yangi access va refresh tokenlarni yaratish"""
+        payload = decode_token(refresh_token)
+        if not payload:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+        
+        user_id = payload.get("sub")
+        user = await db.get(User, int(user_id))
+        if not user or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+        
+        # Yangi tokenlarni yaratish
+        access = create_access_token(str(user.id))
+        refresh = create_refresh_token(str(user.id))
+        
+        return {
+            "access_token": access,
+            "refresh_token": refresh,
+            "user_id": user.id,
+            "device_id": user.device_id
+        }

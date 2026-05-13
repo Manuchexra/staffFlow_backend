@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.modules.auth.schemas import LoginRequest, TokenResponse, VerifyOTPRequest, OTPResponse
+from app.modules.auth.schemas import LoginRequest, TokenResponse, VerifyOTPRequest, OTPResponse, RefreshTokenRequest
 from app.modules.auth.service import AuthService
 from app.core.deps import security, get_current_user
 from app.core.device_utils import get_or_create_device_id
@@ -48,6 +48,19 @@ async def verify_otp(otp_request: VerifyOTPRequest, db: AsyncSession = Depends(g
         otp_request.otp
     )
     
+    return TokenResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        user_id=result["user_id"],
+        device_id=result["device_id"]
+    )
+
+@router.post("/refresh", response_model=TokenResponse, summary="[Auth] Tokenlarni yangilash")
+async def refresh_token(req: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Refresh token orqali yangi access va refresh tokenlarni olish.
+    """
+    result = await AuthService.refresh_tokens(db, req.refresh_token)
     return TokenResponse(
         access_token=result["access_token"],
         refresh_token=result["refresh_token"],
