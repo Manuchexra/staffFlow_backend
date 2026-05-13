@@ -87,7 +87,7 @@ class SalaryService:
             penalty_total=penalty_total,
             advance_total=advance_total,
             net_salary=net_salary,
-            status="calculated"
+            status=Salary.CALCULATED
         )
         db.add(salary)
         await db.commit()
