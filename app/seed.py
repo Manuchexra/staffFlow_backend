@@ -48,7 +48,7 @@ INITIAL_USERS = [
         "expected_monthly_hours": 160,
         "work_start_time": time(9, 0),
         "work_end_time": time(18, 0),
-        "avatar_url": "/static/uploads/avatars/hr.jpg",
+        "avatar_url": "/static/uploads/avatars/hrmanager.jpg",
         "device_id": "hr_device_001"
     },
     {
