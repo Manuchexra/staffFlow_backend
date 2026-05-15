@@ -30,26 +30,6 @@ async def list_users(
     """
     return await UserService.get_all_users(db, search, role, is_active)
 
-@router.get("/{user_id}", response_model=UserResponse, summary="[Admin/HR] Xodim ma'lumotlarini ko'rish")
-async def get_user(
-    user_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user = Depends(require_role(UserRole.HR_MANAGER))
-):
-    return await UserService.get_user_by_id(db, user_id)
-
-@router.patch("/{user_id}", response_model=UserResponse, summary="[Admin/HR] Xodim ma'lumotlarini tahrirlash")
-async def update_user(
-    user_id: int,
-    update_data: UserUpdateHR,
-    db: AsyncSession = Depends(get_db),
-    current_user = Depends(require_role(UserRole.HR_MANAGER))
-):
-    """
-    Xodimning roli, maoshi, holati va boshqa ma'lumotlarini yangilash.
-    """
-    return await UserService.update_user(db, user_id, update_data)
-
 @router.get("/me", response_model=UserResponse, summary="[Auth] O'z profilini ko'rish")
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
@@ -78,6 +58,26 @@ async def upload_my_avatar(
     current_user: User = Depends(get_current_user)
 ):
     return await UserService.update_avatar(db, current_user.id, file)
+
+@router.get("/{user_id}", response_model=UserResponse, summary="[Admin/HR] Xodim ma'lumotlarini ko'rish")
+async def get_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(require_role(UserRole.HR_MANAGER))
+):
+    return await UserService.get_user_by_id(db, user_id)
+
+@router.patch("/{user_id}", response_model=UserResponse, summary="[Admin/HR] Xodim ma'lumotlarini tahrirlash")
+async def update_user(
+    user_id: int,
+    update_data: UserUpdateHR,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(require_role(UserRole.HR_MANAGER))
+):
+    """
+    Xodimning roli, maoshi, holati va boshqa ma'lumotlarini yangilash.
+    """
+    return await UserService.update_user(db, user_id, update_data)
 
 @router.post("/{user_id}/avatar", summary="[Admin/HR] Xodim uchun avatar yuklash")
 async def upload_user_avatar(
