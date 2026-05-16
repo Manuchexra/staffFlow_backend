@@ -44,8 +44,8 @@ async def send_notification(
     """
     Individual, rol bo'yicha yoki barcha foydalanuvchilarga xabar yuborish.
     """
-    count = await NotificationService.create_notification(db, data)
-    return {"message": f"{count} ta foydalanuvchiga yuborildi"}
+    count, target_name = await NotificationService.create_notification(db, data)
+    return {"message": f"{target_name} xabar muvaffaqiyatli yuborildi"}
 
 @router.post("/device-token", summary="[Auth] Push token saqlash")
 async def save_token(

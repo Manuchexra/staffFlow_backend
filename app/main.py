@@ -6,6 +6,7 @@ from app.api.v1.router import api_v1_router
 from app.database import engine, Base, AsyncSessionLocal
 from app.core.redis_client import redis_client
 from app.seed import seed_initial_data
+from app.modules.rbac.models import Role, Permission # Modellar yaratilishi uchun import
 from contextlib import asynccontextmanager
 
 @asynccontextmanager

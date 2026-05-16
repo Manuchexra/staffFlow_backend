@@ -38,6 +38,9 @@ class AttendanceService:
         scheduled_start = datetime.combine(now.date(), user.work_start_time)
         late_minutes = int((now - scheduled_start).total_seconds() / 60) if now > scheduled_start else 0
         
+        from app.modules.notifications.service import NotificationService
+        from app.modules.notifications.models import NotificationType
+        
         attendance = Attendance(
             user_id=user_id,
             check_in_time=now,
@@ -47,6 +50,22 @@ class AttendanceService:
             status=AttendanceStatus.CHECKED_IN
         )
         db.add(attendance)
+        
+        if late_minutes > 0:
+            await NotificationService.send_internal_notification(
+                db, user_id, 
+                "Kechikish ogohlantirishi", 
+                f"Siz ishga {late_minutes} daqiqa kechikdingiz. Iltimos, intizomga rioya qiling.",
+                NotificationType.WARNING
+            )
+        else:
+            await NotificationService.send_internal_notification(
+                db, user_id, 
+                "Xush kelibsiz!", 
+                "Ish kuningiz muvaffaqiyatli boshlandi.",
+                NotificationType.SUCCESS
+            )
+            
         await db.commit()
         await db.refresh(attendance)
         return attendance

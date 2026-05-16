@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
+from sqlalchemy.orm import selectinload
 from app.modules.shifts.models import Shift, EmployeeShift
 from app.modules.shifts.schemas import ShiftCreate, ShiftUpdate, EmployeeShiftCreate
 from fastapi import HTTPException, status
@@ -49,8 +50,8 @@ class ShiftService:
             raise HTTPException(status_code=404, detail="Smena turi topilmadi")
 
         # 2. To'qnashuvni tekshirish (Overlap check)
-        # Shu kuni xodimning boshqa smenalari bormi va ular vaqt jihatidan to'qnashadimi?
-        existing_stmt = select(EmployeeShift).join(Shift).where(
+        # selectinload orqali shift ma'lumotlarini ham birga olib kelamiz
+        existing_stmt = select(EmployeeShift).options(selectinload(EmployeeShift.shift)).where(
             and_(
                 EmployeeShift.user_id == assignment_data.user_id,
                 EmployeeShift.date == assignment_data.date
@@ -61,7 +62,6 @@ class ShiftService:
 
         for assign in existing_assignments:
             # Vaqt to'qnashuvi mantiqi: (StartA < EndB) AND (EndA > StartB)
-            # target_shift vs assign.shift
             if (target_shift.start_time < assign.shift.end_time) and (target_shift.end_time > assign.shift.start_time):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, 
@@ -71,19 +71,32 @@ class ShiftService:
         # 3. Saqlash
         new_assignment = EmployeeShift(**assignment_data.model_dump())
         db.add(new_assignment)
+        
+        from app.modules.notifications.service import NotificationService
+        from app.modules.notifications.models import NotificationType
+        
+        await NotificationService.send_internal_notification(
+            db, assignment_data.user_id, 
+            "Yangi smena", 
+            f"Sizga {assignment_data.date} kuni uchun '{target_shift.name}' smenasi biriktirildi.",
+            NotificationType.INFO
+        )
+        
         await db.commit()
-        await db.refresh(new_assignment)
-        return new_assignment
+        # Refresh qilganda ham relationshipni yuklash uchun options ishlatamiz yoki qayta select qilamiz
+        stmt = select(EmployeeShift).options(selectinload(EmployeeShift.shift)).where(EmployeeShift.id == new_assignment.id)
+        res = await db.execute(stmt)
+        return res.scalar_one()
 
     @staticmethod
     async def get_employee_shift_history(db: AsyncSession, user_id: int):
-        stmt = select(EmployeeShift).where(EmployeeShift.user_id == user_id).order_by(EmployeeShift.date.desc())
+        stmt = select(EmployeeShift).options(selectinload(EmployeeShift.shift)).where(EmployeeShift.user_id == user_id).order_by(EmployeeShift.date.desc())
         result = await db.execute(stmt)
         return result.scalars().all()
     
     @staticmethod
     async def get_all_assignments(db: AsyncSession, date_filter: date = None):
-        stmt = select(EmployeeShift)
+        stmt = select(EmployeeShift).options(selectinload(EmployeeShift.shift))
         if date_filter:
             stmt = stmt.where(EmployeeShift.date == date_filter)
         result = await db.execute(stmt)

@@ -8,7 +8,7 @@ from app.modules.users.models import User
 from app.modules.salary.models import Salary
 from app.modules.attendance.models import Attendance
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 
 router = APIRouter(prefix="/reports", tags=["Reports & Analytics"])
 
@@ -18,8 +18,8 @@ async def get_summary(db: AsyncSession = Depends(get_db), current_user = Depends
     return await ReportService.get_dashboard_summary(db)
 
 # 2. Daily Attendance
-@router.get("/attendance/daily", summary="[Admin/HR] Kunlik davomat statistikasi")
-async def get_daily_attendance(target_date: date = Query(default=date.today()), db: AsyncSession = Depends(get_db), current_user = Depends(require_role(UserRole.HR_MANAGER))):
+@router.get("/attendance/daily", summary="[Admin/HR] Kunlik davomat statistikasi", description="Sana formati: YYYY-MM-DD (Masalan: 2026-05-16)")
+async def get_daily_attendance(target_date: date = Query(default=date.today(), description="Sana formati: YYYY-MM-DD"), db: AsyncSession = Depends(get_db), current_user = Depends(require_role(UserRole.HR_MANAGER))):
     return await ReportService.get_daily_attendance(db, target_date)
 
 # 3. Monthly Attendance Summary
@@ -28,10 +28,18 @@ async def get_monthly_attendance(month: int = Query(...), year: int = Query(...)
     return await ReportService.get_monthly_attendance(db, month, year)
 
 # 4. Employee Attendance Report
-@router.get("/attendance/employee/{user_id}", summary="[Admin/HR] Muayyan xodimning davomat hisoboti")
-async def get_employee_attendance(user_id: int, start_date: date = Query(...), end_date: date = Query(...), db: AsyncSession = Depends(get_db), current_user = Depends(require_role(UserRole.HR_MANAGER))):
-    # Oddiyroq realizatsiya
-    return await ReportService.get_attendance_report(db, start_date, end_date) # Avvalgi metodni qayta ishlatamiz
+@router.get("/attendance/employee/{user_id}", summary="[Admin/HR] Muayyan xodimning davomat hisoboti", description="Sana formati: YYYY-MM-DD (Masalan: 2026-05-01). Path parametrdagi xodim ID si bo'yicha filtrlanadi.")
+async def get_employee_attendance(
+    user_id: int, 
+    start_date: date = Query(..., description="Boshlanish sanasi: YYYY-MM-DD"), 
+    end_date: date = Query(..., description="Tugash sanasi: YYYY-MM-DD"), 
+    db: AsyncSession = Depends(get_db), 
+    current_user = Depends(require_role(UserRole.HR_MANAGER))
+):
+    """
+    Muayyan xodimning ma'lum bir davr uchun davomat hisoboti.
+    """
+    return await ReportService.get_attendance_report(db, start_date, end_date, user_id=user_id)
 
 # 5. Salary Summary
 @router.get("/salary/summary", summary="[Admin/HR] Oylik maosh jamlanmasi")
@@ -63,7 +71,21 @@ async def get_top_performers(db: AsyncSession = Depends(get_db), current_user = 
 
 # 10, 11, 12. Export (Generic)
 @router.get("/export/{format}", summary="[Admin/HR] Hisobotni eksport qilish (CSV/Excel/PDF)")
-async def export_report(format: str, report_type: str = Query(...), db: AsyncSession = Depends(get_db), current_user = Depends(require_role(UserRole.HR_MANAGER))):
-    if format not in ["csv", "excel", "pdf"]:
-        return {"error": "Format not supported"}
+async def export_report(
+    format: str, 
+    report_type: str = Query(..., description="users, attendance, salary"), 
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    db: AsyncSession = Depends(get_db), 
+    current_user = Depends(require_role(UserRole.HR_MANAGER))
+):
+    if format.lower() == "csv":
+        csv_data = await ReportService.get_csv_export(db, report_type, month, year)
+        filename = f"{report_type}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        return Response(
+            content=csv_data,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    
     return {"message": f"{report_type} hisoboti {format} formatida tayyorlanmoqda...", "note": "Hozircha faqat CSV to'liq ishlaydi"}

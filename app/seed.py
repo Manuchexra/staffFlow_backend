@@ -6,6 +6,7 @@ Dastlabki ma'lumotlarni yaratish:
 - Oylik hisob-kitob (salary)
 - Smenalar (shifts)
 - Bildirishnomalar (notifications)
+- RBAC (Roles & Permissions)
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +19,65 @@ from app.modules.shifts.models import Shift, EmployeeShift
 from app.modules.notifications.models import Notification, NotificationType
 from app.core.security import hash_password
 from app.core.deps import UserRole
+from app.modules.rbac.models import Role, Permission
+from app.modules.rbac.service import RBACService
+
+# ==================== RBAC (ROLLAR VA RUXSATLAR) ====================
+INITIAL_PERMISSIONS = [
+    {"name": "user:read", "description": "Xodimlarni ko'rish"},
+    {"name": "user:create", "description": "Yangi xodim qo'shish"},
+    {"name": "user:update", "description": "Xodim ma'lumotlarini tahrirlash"},
+    {"name": "user:delete", "description": "Xodimni o'chirish"},
+    {"name": "report:read", "description": "Hisobotlarni ko'rish"},
+    {"name": "report:export", "description": "Hisobotlarni CSV/PDF eksport qilish"},
+    {"name": "attendance:manage", "description": "Davomatni boshqarish"},
+    {"name": "salary:calculate", "description": "Maoshni hisoblash"},
+    {"name": "shift:manage", "description": "Smenalarni boshqarish"},
+    {"name": "notification:send", "description": "Bildirishnoma yuborish"},
+]
+
+async def seed_rbac(db: AsyncSession):
+    # 1. Permissionlarni yaratish
+    permissions_map = {}
+    for p_data in INITIAL_PERMISSIONS:
+        stmt = select(Permission).where(Permission.name == p_data["name"])
+        res = await db.execute(stmt)
+        p = res.scalar_one_or_none()
+        if not p:
+            p = Permission(**p_data)
+            db.add(p)
+            await db.flush()
+        permissions_map[p.name] = p.id
+    
+    # 2. Rollarni yaratish va ruxsatlarni biriktirish
+    roles_data = [
+        {
+            "name": "HR_MANAGER",
+            "description": "Barcha HR amallari",
+            "permissions": ["user:read", "user:create", "user:update", "report:read", "report:export", "attendance:manage", "salary:calculate", "shift:manage", "notification:send"]
+        },
+        {
+            "name": "EMPLOYEE",
+            "description": "Oddiy xodim ruxsatlari",
+            "permissions": ["user:read"]
+        }
+    ]
+
+    for r_data in roles_data:
+        stmt = select(Role).where(Role.name == r_data["name"])
+        res = await db.execute(stmt)
+        role = res.scalar_one_or_none()
+        if not role:
+            role = Role(name=r_data["name"], description=r_data["description"])
+            db.add(role)
+            await db.flush()
+        
+        # Ruxsatlarni biriktirish
+        role_p_ids = [permissions_map[p_name] for p_name in r_data["permissions"]]
+        await RBACService.assign_permissions_to_role(db, role.id, role_p_ids)
+
+    await db.commit()
+    print("✅ RBAC (Roles & Permissions) seeded.")
 
 # ==================== FOYDALANUVCHILAR ====================
 INITIAL_USERS = [
@@ -173,6 +233,7 @@ async def seed_salary_and_trans(db: AsyncSession, user_id: int, year: int, month
 # ==================== ASOSIY FUNKSIYA ====================
 async def seed_initial_data(db: AsyncSession):
     print("🚀 Seeding test data...")
+    await seed_rbac(db)
     await seed_users(db)
     await seed_shifts(db)
     
@@ -180,10 +241,25 @@ async def seed_initial_data(db: AsyncSession):
     res = await db.execute(select(User).where(User.role == UserRole.EMPLOYEE))
     employees = res.scalars().all()
     
+    # HR ni olish va unga RBAC rolini biriktirish
+    hr_res = await db.execute(select(User).where(User.role == UserRole.HR_MANAGER))
+    hr_user = hr_res.scalar_one_or_none()
+    if hr_user:
+        role_res = await db.execute(select(Role).where(Role.name == "HR_MANAGER"))
+        hr_role = role_res.scalar_one_or_none()
+        if hr_role:
+            await RBACService.assign_roles_to_user(db, hr_user.id, [hr_role.id])
+
     now = datetime.now()
     months = [(now.year, now.month), (now.year, now.month - 1 if now.month > 1 else 12)]
     
     for emp in employees:
+        # Har bir xodimga EMPLOYEE rolini berish
+        role_res = await db.execute(select(Role).where(Role.name == "EMPLOYEE"))
+        emp_role = role_res.scalar_one_or_none()
+        if emp_role:
+            await RBACService.assign_roles_to_user(db, emp.id, [emp_role.id])
+
         for y, m in months:
             await seed_attendance_batch(db, emp.id, y, m)
             await seed_salary_and_trans(db, emp.id, y, m)

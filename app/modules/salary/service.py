@@ -90,6 +90,17 @@ class SalaryService:
             status=Salary.CALCULATED
         )
         db.add(salary)
+        
+        from app.modules.notifications.service import NotificationService
+        from app.modules.notifications.models import NotificationType
+        
+        await NotificationService.send_internal_notification(
+            db, user_id, 
+            "Maosh hisoblandi", 
+            f"{month}/{year} oyi uchun maoshingiz hisoblandi: {net_salary:,.0f} so'm.",
+            NotificationType.SUCCESS
+        )
+        
         await db.commit()
         await db.refresh(salary)
         return salary

@@ -56,7 +56,7 @@ class ReportService:
 
     # 4. Attendance Report (Detailed per period)
     @staticmethod
-    async def get_attendance_report(db: AsyncSession, start_date: date, end_date: date):
+    async def get_attendance_report(db: AsyncSession, start_date: date, end_date: date, user_id: int = None):
         stmt = select(
             User.id, User.first_name, User.last_name,
             func.count(Attendance.id).label("total_entries"),
@@ -66,7 +66,12 @@ class ReportService:
             User.id == Attendance.user_id,
             func.date(Attendance.check_in_time) >= start_date,
             func.date(Attendance.check_in_time) <= end_date
-        )).group_by(User.id)
+        ))
+        
+        if user_id:
+            stmt = stmt.where(User.id == user_id)
+            
+        stmt = stmt.group_by(User.id)
 
         result = await db.execute(stmt)
         rows = result.all()
@@ -134,3 +139,41 @@ class ReportService:
         res = await db.execute(stmt)
         data = res.all()
         return [{"user_id": u.id, "full_name": f"{u.first_name} {u.last_name}", "total_hours": float(h)} for u, h in data]
+    # --- Export Utilities ---
+    @staticmethod
+    async def get_csv_export(db: AsyncSession, report_type: str, month: int = None, year: int = None):
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        if report_type == "users":
+            header = ["ID", "Ism", "Familiya", "Telefon", "Email", "Lavozim", "Rol", "Status"]
+            writer.writerow(header)
+            res = await db.execute(select(User))
+            users = res.scalars().all()
+            for u in users:
+                writer.writerow([u.id, u.first_name, u.last_name, u.phone, u.email, u.position, u.role, "Faol" if u.is_active else "Nofaol"])
+
+        elif report_type == "attendance":
+            header = ["Foydalanuvchi ID", "Ism", "Sana", "Kirish vaqti", "Chiqish vaqti", "Ish soati", "Kechikish (daq)"]
+            writer.writerow(header)
+            stmt = select(Attendance, User).join(User, Attendance.user_id == User.id)
+            if month and year:
+                stmt = stmt.where(and_(extract('month', Attendance.check_in_time) == month, extract('year', Attendance.check_in_time) == year))
+            res = await db.execute(stmt.order_by(Attendance.check_in_time.desc()))
+            for att, u in res.all():
+                writer.writerow([u.id, f"{u.first_name} {u.last_name}", att.check_in_time.date(), att.check_in_time.time(), att.check_out_time.time() if att.check_out_time else "-", att.worked_hours, att.late_minutes])
+
+        elif report_type == "salary":
+            header = ["ID", "Ism", "Oy", "Yil", "Asosiy maosh", "Bonus", "Jarima", "Avans", "To'lanadigan", "Status"]
+            writer.writerow(header)
+            stmt = select(Salary, User).join(User, Salary.user_id == User.id)
+            if month and year:
+                stmt = stmt.where(and_(Salary.month == month, Salary.year == year))
+            res = await db.execute(stmt.order_by(Salary.year.desc(), Salary.month.desc()))
+            for sal, u in res.all():
+                writer.writerow([u.id, f"{u.first_name} {u.last_name}", sal.month, sal.year, sal.base_salary, sal.bonus_total, sal.penalty_total, sal.advance_total, sal.net_salary, sal.status.value])
+        
+        return output.getvalue()
