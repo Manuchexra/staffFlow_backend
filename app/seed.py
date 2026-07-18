@@ -97,6 +97,21 @@ INITIAL_USERS = [
         "device_id": "admin_device_001"
     },
     {
+        "phone": "+998909876543",
+        "email": "admin2@staffflow.uz",
+        "first_name": "Diyor",
+        "last_name": "Rustamov",
+        "password": "Admin@2026",
+        "role": UserRole.ADMIN,
+        "position": "Yordamchi Administrator",
+        "base_salary": 7500000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(8, 30),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/admin2.jpg",
+        "device_id": "admin_device_002"
+    },
+    {
         "phone": "+998902345678",
         "email": "hr@staffflow.uz",
         "first_name": "Anora",
@@ -138,6 +153,49 @@ INITIAL_USERS = [
         "work_type": WorkType.ONLINE,
         "avatar_url": "/static/uploads/avatars/employee2.jpg",
         "device_id": "emp_device_002"
+    },
+    {
+        "phone": "+998905678901",
+        "email": "hr2@staffflow.uz",
+        "first_name": "Madina",
+        "last_name": "Sultonova",
+        "password": "HRmanager2026",
+        "role": UserRole.HR_MANAGER,
+        "position": "Junior HR Specialist",
+        "base_salary": 4500000,
+        "expected_monthly_hours": 160,
+        "work_start_time": time(9, 0),
+        "work_end_time": time(18, 0),
+        "avatar_url": "/static/uploads/avatars/hrmanager2.jpg",
+        "device_id": "hr_device_002"
+    },
+    {
+        "phone": "+998906789012",
+        "email": "employee3@staffflow.uz",
+        "first_name": "Jasur",
+        "last_name": "Karimov",
+        "password": "Emp@2026",
+        "role": UserRole.EMPLOYEE,
+        "position": "Mobile Developer",
+        "base_salary": 4800000,
+        "expected_monthly_hours": 160,
+        "work_type": WorkType.ONLINE,
+        "avatar_url": "/static/uploads/avatars/employee3.jpg",
+        "device_id": "emp_device_003"
+    },
+    {
+        "phone": "+998907890123",
+        "email": "employee4@staffflow.uz",
+        "first_name": "Kamola",
+        "last_name": "Alieva",
+        "password": "Emp@2026",
+        "role": UserRole.EMPLOYEE,
+        "position": "QA Engineer",
+        "base_salary": 3800000,
+        "expected_monthly_hours": 160,
+        "work_type": WorkType.ONLINE,
+        "avatar_url": "/static/uploads/avatars/employee4.jpg",
+        "device_id": "emp_device_004"
     }
 ]
 
@@ -243,11 +301,11 @@ async def seed_initial_data(db: AsyncSession):
     
     # HR ni olish va unga RBAC rolini biriktirish
     hr_res = await db.execute(select(User).where(User.role == UserRole.HR_MANAGER))
-    hr_user = hr_res.scalar_one_or_none()
-    if hr_user:
-        role_res = await db.execute(select(Role).where(Role.name == "HR_MANAGER"))
-        hr_role = role_res.scalar_one_or_none()
-        if hr_role:
+    hr_users = hr_res.scalars().all()
+    role_res = await db.execute(select(Role).where(Role.name == "HR_MANAGER"))
+    hr_role = role_res.scalar_one_or_none()
+    if hr_role:
+        for hr_user in hr_users:
             await RBACService.assign_roles_to_user(db, hr_user.id, [hr_role.id])
 
     now = datetime.now()

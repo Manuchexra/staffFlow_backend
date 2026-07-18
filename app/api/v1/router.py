@@ -7,7 +7,7 @@ from app.modules.shifts.endpoints import router as shifts_router
 from app.modules.notifications.endpoints import router as notifications_router
 from app.modules.reports.endpoints import router as reports_router
 from app.modules.rbac.endpoints import router as rbac_router
-from app.modules.dashboard.endpoints import router as dashboard_router
+from app.modules.admin.endpoints import router as admin_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(auth_router)
@@ -18,4 +18,4 @@ api_v1_router.include_router(shifts_router)
 api_v1_router.include_router(notifications_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(rbac_router)
-api_v1_router.include_router(dashboard_router)
+api_v1_router.include_router(admin_router)

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | StaffFlow Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0c4b33;
+            --primary-dark: #092e20;
+            --primary-light: #122c22;
+            --accent: #417690;
+            --accent-light: #79aec8;
+            --bg-light: #f8f9fa;
+            --border-color: #eee;
+            --text-dark: #333;
+            --text-light: #666;
+        }
+
+        body {
+            font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        #header {
+            background: var(--primary-dark);
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #branding h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        #branding h1 a {
+            color: #f5dd5d;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+
+        #user-tools {
+            font-size: 13px;
+            color: #fff;
+        }
+
+        #user-tools a, #user-tools button {
+            color: #c4dce9;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0;
+            font-family: inherit;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        #user-tools a:hover, #user-tools button:hover {
+            color: #fff;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            background: var(--primary);
+            color: #c4dce9;
+            padding: 10px 24px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .breadcrumbs a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .breadcrumbs a:hover {
+            text-decoration: underline;
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 85px);
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
+        }
+
+        .nav-section {
+            margin-bottom: 28px;
+        }
+
+        .nav-section h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            padding: 0 12px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .nav-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-section ul li a {
+            display: block;
+            padding: 10px 14px;
+            color: #444;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-section ul li a:hover, .nav-section ul li a.active {
+            background: #f0f4f2;
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            padding: 32px;
+        }
+
+        main h2.welcome-text {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        main p.subtitle {
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 28px;
+            font-size: 15px;
+        }
+
+        /* Info Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            background: #fcfcfc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 18px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-body {
+            padding: 24px 18px;
+        }
+
+        .card-body p {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .footer {
+            margin-top: 48px;
+            color: var(--text-light);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div id="branding">
+        <h1 id="site-name"><a href="/admin/dashboard">StaffFlow Administration</a></h1>
+    </div>
+    <div id="user-tools">
+        Xush kelibsiz, <strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong>.
+        <a href="/admin/dashboard">Bosh sahifa</a> /
+        <form method="post" action="/admin/logout" style="display:inline;"><button type="submit">Chiqish</button></form>
+    </div>
+</div>
+
+<div class="breadcrumbs">
+    Bosh sahifa
+</div>
+
+<div class="layout">
+    <nav>
+        <div class="nav-section">
+            <h3>Tizim boshqaruvi</h3>
+            <ul>
+                <li><a href="/admin/dashboard" class="active">Bosh sahifa</a></li>
+                <li><a href="/admin/users">Foydalanuvchilar</a></li>
+                <li><a href="/admin/roles">Rollar</a></li>
+                <li><a href="/admin/permissions">Ruxsatlar</a></li>
+            </ul>
+        </div>
+        <div class="nav-section">
+            <h3>Tezkor havolalar</h3>
+            <ul>
+                <li><a href="/docs" target="_blank">Swagger API Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+    <main>
+        <h2 class="welcome-text">Salom, {{ current_user.first_name }}!</h2>
+        <p class="subtitle">Admin panelga xush kelibsiz. Quyida tizimdagi umumiy ko'rsatkichlar berilgan.</p>
+        
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-header">Jami xodimlar</div>
+                <div class="card-body">
+                    <p>{{ summary.total_employees }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Faol xodimlar</div>
+                <div class="card-body">
+                    <p>{{ summary.active_employees }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Bugun kelganlar</div>
+                <div class="card-body">
+                    <p>{{ summary.present_today }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Kechikkanlar</div>
+                <div class="card-body">
+                    <p>{{ summary.late_today }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Oylik payroll</div>
+                <div class="card-body">
+                    <p>{{ summary.total_payroll_month }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>StaffFlow admin panel - faqat tizim ma'murlari uchun.</p>
+        </div>
+    </main>
+</div>
+</body>
+</html>

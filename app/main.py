@@ -34,6 +34,9 @@ app.add_middleware(
 
 app.include_router(api_v1_router)
 
+from app.modules.admin.web import router as admin_web_router
+app.include_router(admin_web_router)
+
 # Static files va upload papkasini sozlash
 UPLOAD_DIR = "static/uploads/avatars"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

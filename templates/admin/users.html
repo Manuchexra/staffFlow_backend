@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foydalanuvchilar | StaffFlow Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0c4b33;
+            --primary-dark: #092e20;
+            --primary-light: #122c22;
+            --accent: #417690;
+            --accent-light: #79aec8;
+            --bg-light: #f8f9fa;
+            --border-color: #eee;
+            --text-dark: #333;
+            --text-light: #666;
+            --success: #264b3d;
+            --danger: #ba2121;
+        }
+
+        body {
+            font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        #header {
+            background: var(--primary-dark);
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #branding h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        #branding h1 a {
+            color: #f5dd5d;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+
+        #user-tools {
+            font-size: 13px;
+            color: #fff;
+        }
+
+        #user-tools a, #user-tools button {
+            color: #c4dce9;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0;
+            font-family: inherit;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        #user-tools a:hover, #user-tools button:hover {
+            color: #fff;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            background: var(--primary);
+            color: #c4dce9;
+            padding: 10px 24px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .breadcrumbs a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .breadcrumbs a:hover {
+            text-decoration: underline;
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 85px);
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
+        }
+
+        .nav-section {
+            margin-bottom: 28px;
+        }
+
+        .nav-section h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            padding: 0 12px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .nav-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-section ul li a {
+            display: block;
+            padding: 10px 14px;
+            color: #444;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-section ul li a:hover, .nav-section ul li a.active {
+            background: #f0f4f2;
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            padding: 32px;
+        }
+
+        main h2.page-title {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 24px;
+        }
+
+        /* Django Changelist layout: Search + (Table + Filter Sidebar) */
+        .changelist-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Search Form */
+        .search-box {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-form input[type="text"] {
+            flex-grow: 1;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-form input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-django {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s ease;
+        }
+
+        .btn-django:hover {
+            background: #305c73;
+        }
+
+        /* Grid for Table and Filters */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Table */
+        .table-container {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fbfdfc;
+        }
+
+        tr:hover {
+            background-color: #f2f7f4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .status-active {
+            background: #e6f4ea;
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background: #fce8e6;
+            color: var(--danger);
+        }
+
+        /* Right Filter Sidebar */
+        .filter-sidebar {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .filter-sidebar h3 {
+            margin-top: 0;
+            font-size: 13px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            outline: none;
+            background: #fff;
+        }
+
+        .filter-group select:focus {
+            border-color: var(--accent);
+        }
+
+        .filter-actions {
+            margin-top: 24px;
+        }
+
+        .btn-django-primary {
+            background: var(--primary);
+            width: 100%;
+        }
+
+        .btn-django-primary:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div id="branding">
+        <h1 id="site-name"><a href="/admin/dashboard">StaffFlow Administration</a></h1>
+    </div>
+    <div id="user-tools">
+        Xush kelibsiz, <strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong>.
+        <a href="/admin/dashboard">Bosh sahifa</a> /
+        <form method="post" action="/admin/logout" style="display:inline;"><button type="submit">Chiqish</button></form>
+    </div>
+</div>
+
+<div class="breadcrumbs">
+    <a href="/admin/dashboard">Bosh sahifa</a> &rsaquo; Foydalanuvchilar
+</div>
+
+<div class="layout">
+    <nav>
+        <div class="nav-section">
+            <h3>Tizim boshqaruvi</h3>
+            <ul>
+                <li><a href="/admin/dashboard">Bosh sahifa</a></li>
+                <li><a href="/admin/users" class="active">Foydalanuvchilar</a></li>
+                <li><a href="/admin/roles">Rollar</a></li>
+                <li><a href="/admin/permissions">Ruxsatlar</a></li>
+            </ul>
+        </div>
+        <div class="nav-section">
+            <h3>Tezkor havolalar</h3>
+            <ul>
+                <li><a href="/docs" target="_blank">Swagger API Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+    <main>
+        <h2 class="page-title">Foydalanuvchilar ro'yxati</h2>
+        
+        <div class="changelist-container">
+            <!-- Django-style Search and Filters Combined Form -->
+            <form method="get" class="search-box">
+                <div class="search-form">
+                    <input type="text" name="search" placeholder="Ism, telefon yoki email orqali qidirish..." value="{{ search or '' }}">
+                    
+                    <!-- Hidden filter states to keep them when searching -->
+                    <input type="hidden" name="role" value="{{ role or '' }}">
+                    <input type="hidden" name="is_active" value="{{ is_active or '' }}">
+                    
+                    <button class="btn-django" type="submit">Qidirish</button>
+                </div>
+            </form>
+
+            <div class="content-grid">
+                <!-- Table View -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ism-Sharif</th>
+                                <th>Telefon</th>
+                                <th>Email</th>
+                                <th>Lavozim</th>
+                                <th>Rol</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% if users %}
+                            {% for user in users %}
+                                <tr>
+                                    <td><strong>{{ user.id }}</strong></td>
+                                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                                    <td>{{ user.phone }}</td>
+                                    <td>{{ user.email or '-' }}</td>
+                                    <td>{{ user.position or '-' }}</td>
+                                    <td><span style="font-weight: 500; color: #555;">{{ user.role.value if user.role.value is defined else user.role }}</span></td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="status-badge status-active">Faol</span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">Nofaol</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-light); padding: 24px;">Foydalanuvchilar topilmadi.</td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right Filter Sidebar -->
+                <div class="filter-sidebar">
+                    <h3>Filtrlar</h3>
+                    <form method="get">
+                        <!-- Keep search state when filtering -->
+                        {% if search %}
+                            <input type="hidden" name="search" value="{{ search }}">
+                        {% endif %}
+                        
+                        <div class="filter-group">
+                            <label for="id_role">Rol bo'yicha</label>
+                            <select id="id_role" name="role">
+                                <option value="">Barchasi</option>
+                                <option value="ADMIN" {% if role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                <option value="HR_MANAGER" {% if role == 'HR_MANAGER' %}selected{% endif %}>HR Manager</option>
+                                <option value="EMPLOYEE" {% if role == 'EMPLOYEE' %}selected{% endif %}>Employee</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="id_is_active">Status bo'yicha</label>
+                            <select id="id_is_active" name="is_active">
+                                <option value="">Barchasi</option>
+                                <option value="true" {% if is_active == true or is_active == 'true' %}selected{% endif %}>Faol</option>
+                                <option value="false" {% if is_active == false or is_active == 'false' %}selected{% endif %}>Nofaol</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-actions">
+                            <button class="btn-django btn-django-primary" type="submit">Qo'llash</button>
+                            <a href="/admin/users" style="display: block; text-align: center; margin-top: 12px; font-size: 13px; color: var(--accent); text-decoration: none;">Filtrlarni tozalash</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
